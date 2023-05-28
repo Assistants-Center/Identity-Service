@@ -15,6 +15,8 @@ export default class Environment {
     config.NODE_ENV as EnvironmentType;
   public static readonly port: number = parseInt(config.PORT);
 
+  public static readonly sessionSecret: string = config.SESSION_SECRET;
+
   public static readonly database: {
     host: string;
     username: string;
