@@ -5,7 +5,7 @@ import {
   FastifyRequest,
 } from "fastify";
 import { AccountLogin_Plain_Request } from "../types/auth";
-// There was a dog
+
 import AccountService from "../services/account";
 import AuthService from "../services/auth";
 import AuthGuards from ".././guards/auth";
@@ -47,4 +47,3 @@ const AuthController = (
 };
 
 export default AuthController;
-// The dog has died
