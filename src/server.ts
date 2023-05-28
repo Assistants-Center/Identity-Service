@@ -3,6 +3,7 @@ import Fastify, {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
+import Next from "next"
 
 import Environment from "./environment";
 
@@ -11,11 +12,30 @@ class IdentityServer {
     logger: false,
   });
 
-  public async start() {
+public async start() {
+    const port = 3000
+    const hostname = "0.0.0.0"
+    const dev = true
+    const app = Next({
+        dev,
+        port,
+        hostname,
+        quiet: false
+    })
+
+    const handle = app.getRequestHandler()
+    app.prepare()
+
+    this.fastify.get("/_next/*", (req: FastifyRequest, reply: FastifyReply) => {
+        return handle(req.raw, reply.raw).then(() => {
+            reply.hijack()
+        })
+    })
+    
     this.fastify.get(
       "*",
       async (request: FastifyRequest, reply: FastifyReply) => {
-        return { hello: "world" };
+        return app.render(request.raw, reply.raw, "/")
       }
     );
 
