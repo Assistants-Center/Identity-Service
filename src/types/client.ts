@@ -1,23 +1,23 @@
 enum ClientScope {
-  ADMIN = "admin",
+  Admin = "admin",
 
-  ACCOUNT_READ = "account:read",
-  ACCOUNT_WRITE = "account:write",
-  ACCOUNT_DELETE = "account:delete",
+  AccountRead = "account:read",
+  AccountWrite = "account:write",
+  AccountDelete = "account:delete",
 
-  DBD_READ = "dbd:read",
-  DBD_WRITE = "dbd:write",
-  DBD_DELETE = "dbd:delete",
+  DbdRead = "dbd:read",
+  DbdWrite = "dbd:write",
+  DbdDelete = "dbd:delete",
 
-  STORE_READ = "store:read",
-  STORE_WRITE = "store:write",
-  STORE_DELETE = "store:delete",
+  StoreRead = "store:read",
+  StoreWrite = "store:write",
+  StoreDelete = "store:delete",
 }
 
 interface IClient {
   id: string;
   secret: string;
-  redirectUris: string[];
+  redirect_uris: string[];
   name: string;
 
   scope: ClientScope[];

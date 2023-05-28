@@ -5,6 +5,7 @@ import {
   RawServerBase,
   RouteGenericInterface,
 } from "fastify";
+import { UnprocessableEntityException } from "../utils/http_exceptions";
 
 class AccountService<
   Request extends RouteGenericInterface,
@@ -20,7 +21,7 @@ class AccountService<
       $or: [{ username: parameter }, { email: parameter }],
     });
     if (!user) {
-      throw new Error("User not found");
+      throw new UnprocessableEntityException("Invalid credentials");
     }
     return user;
   }

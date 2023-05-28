@@ -4,6 +4,10 @@ import {
   RawServerBase,
   RouteGenericInterface,
 } from "fastify";
+import {
+  ForbiddenException,
+  UnauthorizedException,
+} from "../utils/http_exceptions";
 
 class AuthGuards<
   Request extends RouteGenericInterface,
@@ -16,13 +20,13 @@ class AuthGuards<
 
   public async mustBeAuthenticated() {
     if (!this.request.session.get("user")) {
-      throw new Error("Unauthorized");
+      throw new UnauthorizedException();
     }
   }
 
   public async mustNotBeAuthenticated() {
     if (this.request.session.get("user")) {
-      throw new Error("Not allowed");
+      throw new ForbiddenException("You are already authenticated");
     }
   }
 }

@@ -9,6 +9,7 @@ import { AccountLogin_Plain_Request } from "../types/auth";
 import AccountService from "../services/account";
 import AuthService from "../services/auth";
 import AuthGuards from ".././guards/auth";
+import { UnprocessableEntityException } from "../utils/http_exceptions";
 
 const AuthController = (
   instance: FastifyInstance,
@@ -30,7 +31,7 @@ const AuthController = (
         parameter
       );
       if (user.password !== password) {
-        throw new Error("Invalid password");
+        throw new UnprocessableEntityException("Invalid credentials");
       }
       await new AuthService(request, reply, user).login();
     }
