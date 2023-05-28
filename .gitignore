@@ -1,6 +1,5 @@
 node_modules
 .env
 Identity.iml
-.idea
 .DS_Store
 .next
