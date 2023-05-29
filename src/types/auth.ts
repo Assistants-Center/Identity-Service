@@ -1,5 +1,4 @@
-import { Length, Validate, validate } from "class-validator";
-import { UnprocessableEntityException } from "../utils/http_exceptions";
+import { Length, Validate } from "class-validator";
 
 import {
   EmailValidator,
@@ -24,23 +23,6 @@ class AccountLogin_Plain_Request_DTO implements AccountLogin_Plain_Request {
     this.parameter = body.parameter;
     this.password = body.password;
   }
-
-  public readonly validate = async () => {
-    await validate(this).then((errors) => {
-      if (errors.length > 0) {
-        const errorsString = errors
-          .map((error) => {
-            return error.constraints
-              ? Object.values(error.constraints).join(", ")
-              : "";
-          })
-          .join(", ");
-        throw new UnprocessableEntityException(
-          `Validation failed: ${errorsString}`
-        );
-      }
-    });
-  };
 }
 
 type AccountCreate_Plain_Request = {
@@ -66,23 +48,6 @@ class AccountCreate_Plain_Request_DTO implements AccountCreate_Plain_Request {
     this.email = body.email;
     this.password = body.password;
   }
-
-  public readonly validate = async () => {
-    await validate(this).then((errors) => {
-      if (errors.length > 0) {
-        const errorsString = errors
-          .map((error) => {
-            return error.constraints
-              ? Object.values(error.constraints).join(", ")
-              : "";
-          })
-          .join(", ");
-        throw new UnprocessableEntityException(
-          `Validation failed: ${errorsString}`
-        );
-      }
-    });
-  };
 }
 
 export {

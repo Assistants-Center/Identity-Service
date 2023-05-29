@@ -13,6 +13,7 @@ import AccountService from "../services/account";
 import AuthService from "../services/auth";
 import AuthGuards from ".././guards/auth";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
+import { validateBody } from "../utils/validators";
 
 const AuthController = (
   instance: FastifyInstance,
@@ -30,7 +31,7 @@ const AuthController = (
       await new AuthGuards(request, reply).mustNotBeAuthenticated();
 
       const body = new AccountLogin_Plain_Request_DTO(request.body);
-      await body.validate();
+      await validateBody(body);
 
       const user = await new AccountService(request, reply).findByParameter(
         body.parameter

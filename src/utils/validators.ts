@@ -1,8 +1,27 @@
 import {
+  validate,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from "class-validator";
+import { UnprocessableEntityException } from "./http_exceptions";
+
+export const validateBody = async (what: any) => {
+  await validate(what).then((errors) => {
+    if (errors.length > 0) {
+      const errorsString = errors
+        .map((error) => {
+          return error.constraints
+            ? Object.values(error.constraints).join(", ")
+            : "";
+        })
+        .join(", ");
+      throw new UnprocessableEntityException(
+        `Validation failed: ${errorsString}`
+      );
+    }
+  });
+};
 
 @ValidatorConstraint({ name: "usernameValid", async: false })
 export class UsernameValidator implements ValidatorConstraintInterface {
