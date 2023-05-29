@@ -20,6 +20,8 @@ interface IClient {
   redirect_uris: string[];
   name: string;
 
+  user_consent_required: boolean;
+
   scopes: ClientScope[];
 }
 

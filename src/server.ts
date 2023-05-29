@@ -70,6 +70,9 @@ class IdentityServer {
       if (!req.session.get("client") || !req.session.get("redirect_uri")) {
         return app.render(req.raw, reply.raw, "/client_died", {});
       }
+      if (req.session.get("two_factor_user")) {
+        return reply.redirect("/2fa");
+      }
       if (!req.session.get("user")) {
         return app.render(req.raw, reply.raw, "/login", {});
       } else {
@@ -84,11 +87,21 @@ class IdentityServer {
       if (!req.session.get("client") || !req.session.get("redirect_uri")) {
         return app.render(req.raw, reply.raw, "/client_died", {});
       }
+      if (req.session.get("two_factor_user")) {
+        return reply.redirect("/2fa");
+      }
       return app.render(req.raw, reply.raw, "/client_request", {
         user: req.session.get("user"),
         client: req.session.get("client"),
         redirect_uri: req.session.get("redirect_uri"),
       });
+    });
+
+    this.fastify.get("/2fa", (request: FastifyRequest, reply: FastifyReply) => {
+      if (!request.session.two_factor_user) {
+        return reply.redirect("/login");
+      }
+      return app.render(request.raw, reply.raw, "/two_factor", {});
     });
 
     this.app = app;

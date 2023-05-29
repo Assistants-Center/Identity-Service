@@ -15,6 +15,7 @@ import AuthGuards from ".././guards/auth";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
 import { validateBody } from "../utils/validators";
 import ClientService from "../services/client";
+import TwoFactorService from "../services/two_factor";
 
 const AuthController = (
   instance: FastifyInstance,
@@ -63,7 +64,41 @@ const AuthController = (
       if (user.password !== body.password) {
         throw new UnprocessableEntityException("Invalid credentials");
       }
+
       await new AuthService(request, reply, user).login();
+
+      return reply.send();
+    }
+  );
+
+  instance.post(
+    "/2fa/verify",
+    async (
+      request: FastifyRequest<{
+        Body: {
+          code: string;
+        };
+      }>,
+      reply: FastifyReply
+    ) => {
+      await new AuthGuards(request, reply).mustNotBeAuthenticated();
+
+      const { code } = request.body;
+      if (!code) {
+        throw new UnprocessableEntityException("Invalid code");
+      }
+
+      const { two_factor_user } = request.session;
+      if (!two_factor_user) {
+        throw new UnprocessableEntityException("Invalid session id");
+      }
+
+      await new TwoFactorService(
+        request,
+        reply,
+        two_factor_user
+      ).validate2FASession(code);
+
       return reply.send();
     }
   );

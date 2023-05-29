@@ -14,6 +14,7 @@ declare module "fastify" {
     user: HydratedDocument<IUser>;
     client: HydratedDocument<IClient>;
     redirect_uri: string;
+    two_factor_user: HydratedDocument<IUser>;
   }
 }
 

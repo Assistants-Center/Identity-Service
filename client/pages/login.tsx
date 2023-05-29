@@ -7,10 +7,11 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     try {
-      await axios.post<never>("/api/auth/login", {
+      const res = await axios.post<never>("/api/auth/login", {
         parameter,
         password,
       });
+
       location.href = "/request";
     } catch (err) {
       console.error((err as AxiosError).response);

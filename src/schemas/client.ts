@@ -7,6 +7,7 @@ const clientSchema = new Schema<IClient>({
   id: { type: String, required: true },
   secret: { type: String, required: true },
   redirect_uris: { type: [String], required: true, default: [] },
+  user_consent_required: { type: Boolean, required: true, default: true },
   scopes: { type: [String], required: true, default: [] },
 });
 
@@ -19,6 +20,10 @@ User.deleteMany({}).then(() => {
     email: "admin@assistantscenter.com",
     password: "admin123",
     roles: ["admin"],
+    two_factor: {
+      enabled: true,
+      devices: [],
+    },
   }).then((user) => {
     console.log("Created admin user");
     Client.deleteMany({}).then(() => {

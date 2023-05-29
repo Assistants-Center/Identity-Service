@@ -35,6 +35,11 @@ const ClientRequestPage = ({
         to your account. You will be redirected to {redirect_uri} url. Scopes
         requested: {client.scopes.join(", ")}
       </h2>
+
+      <p>
+        User consent is{" "}
+        {client.user_consent_required ? "required" : "not required"}
+      </p>
     </div>
   );
 };
