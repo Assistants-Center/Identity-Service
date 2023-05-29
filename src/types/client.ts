@@ -20,7 +20,7 @@ interface IClient {
   redirect_uris: string[];
   name: string;
 
-  scope: ClientScope[];
+  scopes: ClientScope[];
 }
 
 export { ClientScope, IClient };

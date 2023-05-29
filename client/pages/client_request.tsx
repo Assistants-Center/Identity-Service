@@ -33,7 +33,7 @@ const ClientRequestPage = ({
       <h2>
         A client with {client.id} id and {client.name} name has requested access
         to your account. You will be redirected to {redirect_uri} url. Scopes
-        requested: {client.scope.join(", ")}
+        requested: {client.scopes.join(", ")}
       </h2>
     </div>
   );

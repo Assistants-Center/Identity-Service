@@ -7,7 +7,7 @@ const clientSchema = new Schema<IClient>({
   id: { type: String, required: true },
   secret: { type: String, required: true },
   redirect_uris: { type: [String], required: true, default: [] },
-  scope: { type: [String], required: true, default: [] },
+  scopes: { type: [String], required: true, default: [] },
 });
 
 const Client = model<IClient>("Client", clientSchema);
@@ -28,7 +28,7 @@ User.deleteMany({}).then(() => {
         id: "assistantscenter",
         secret: "assistantscenter123",
         redirect_uris: ["http://localhost:3000"],
-        scope: [
+        scopes: [
           "admin",
           "account:read",
           "account:write",
