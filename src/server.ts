@@ -7,6 +7,7 @@ import Next from "next";
 
 import FastifyCookie from "@fastify/cookie";
 import FastifySession from "@fastify/session";
+import FastifyMultipart from "@fastify/multipart";
 
 import Environment, { EnvironmentType } from "./environment";
 import path from "path";
@@ -25,6 +26,10 @@ class IdentityServer {
     await this.fastify.register(FastifyCookie);
     await this.fastify.register(FastifySession, {
       secret: Environment.sessionSecret,
+    });
+
+    await this.fastify.register(FastifyMultipart, {
+      addToBody: true,
     });
 
     await this.prepareNext();

@@ -4,7 +4,10 @@ import {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
-import { AccountLogin_Plain_Request } from "../types/auth";
+import {
+  AccountLogin_Plain_Request,
+  AccountLogin_Plain_Request_DTO,
+} from "../types/auth";
 
 import AccountService from "../services/account";
 import AuthService from "../services/auth";
@@ -26,11 +29,14 @@ const AuthController = (
     ) => {
       await new AuthGuards(request, reply).mustNotBeAuthenticated();
 
-      const { parameter, password } = request.body;
+      const body = new AccountLogin_Plain_Request_DTO(request.body);
+      await body.validate();
+
       const user = await new AccountService(request, reply).findByParameter(
-        parameter
+        body.parameter
       );
-      if (user.password !== password) {
+
+      if (user.password !== body.password) {
         throw new UnprocessableEntityException("Invalid credentials");
       }
       await new AuthService(request, reply, user).login();

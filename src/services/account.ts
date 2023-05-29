@@ -21,18 +21,19 @@ class AccountService<
       $or: [{ username: parameter }, { email: parameter }],
     });
     if (!user) {
-      throw new UnprocessableEntityException("Invalid credentials");
+      throw new UnprocessableEntityException(
+        "Account not found using this parameter"
+      );
     }
     return user;
   }
 
   public async create(username: string, email: string, password: string) {
-    const user = await User.create({
+    return await User.create({
       username,
       email,
       password,
     });
-    return user;
   }
 }
 
