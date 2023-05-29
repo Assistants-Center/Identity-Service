@@ -101,7 +101,9 @@ class IdentityServer {
       if (!request.session.two_factor_user) {
         return reply.redirect("/login");
       }
-      return app.render(request.raw, reply.raw, "/two_factor", {});
+      return app.render(request.raw, reply.raw, "/two_factor", {
+        user: request.session.get("two_factor_user"),
+      });
     });
 
     this.app = app;

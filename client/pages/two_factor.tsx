@@ -1,7 +1,23 @@
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { IUser } from "../../src/types/user";
 
-const TwoFactorPage = () => {
+export const getServerSideProps: GetServerSideProps<{
+  user: IUser;
+}> = async (context) => {
+  return {
+    props: {
+      user: JSON.parse(
+        JSON.stringify(context.query["user"])
+      ) as unknown as IUser,
+    },
+  };
+};
+
+const TwoFactorPage = ({
+  user,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [code, setCode] = useState("");
 
   const handleConfirm = async () => {
@@ -18,6 +34,9 @@ const TwoFactorPage = () => {
   return (
     <div>
       <h1>Two Factor Code</h1>
+      <p>
+        {user.username}, to access your account, please enter your 2FA Code.
+      </p>
 
       <input
         type="text"
