@@ -14,12 +14,35 @@ import AuthService from "../services/auth";
 import AuthGuards from ".././guards/auth";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
 import { validateBody } from "../utils/validators";
+import ClientService from "../services/client";
 
 const AuthController = (
   instance: FastifyInstance,
   opts: FastifyPluginOptions,
   done: () => void
 ) => {
+  instance.get(
+    "/request",
+    async (
+      request: FastifyRequest<{
+        Querystring: {
+          client_id: string;
+          redirect_uri: string;
+        };
+      }>,
+      reply: FastifyReply
+    ) => {
+      const client = await ClientService.find(request.query.client_id);
+      await new ClientService(request, reply, client).validateRedirectUri(
+        request.query.redirect_uri
+      );
+      await new ClientService(request, reply, client).requestAuthorization(
+        request.query.redirect_uri
+      );
+      return reply.redirect("/login");
+    }
+  );
+
   instance.post(
     "/login",
     async (
@@ -41,6 +64,7 @@ const AuthController = (
         throw new UnprocessableEntityException("Invalid credentials");
       }
       await new AuthService(request, reply, user).login();
+      return reply.send();
     }
   );
 

@@ -6,10 +6,14 @@ import {
   RawServerBase,
   RouteGenericInterface,
 } from "fastify";
+import { IClient } from "../types/client";
+import { UnprocessableEntityException } from "../utils/http_exceptions";
 
 declare module "fastify" {
   interface Session {
     user: HydratedDocument<IUser>;
+    client: HydratedDocument<IClient>;
+    redirect_uri: string;
   }
 }
 
@@ -20,11 +24,22 @@ class SessionService<
   constructor(
     private readonly request: FastifyRequest<Request>,
     private readonly reply: FastifyReply<Reply>,
-    private readonly user: HydratedDocument<IUser>
+    private readonly user?: HydratedDocument<IUser>
   ) {}
 
   public async saveUser() {
-    this.request.session.set("user", this.user);
+    if (!this.user) {
+      throw new UnprocessableEntityException("User not found");
+    }
+    await this.request.session.set("user", this.user);
+  }
+
+  public async saveClient(
+    client: HydratedDocument<IClient>,
+    redirect_uri: string
+  ) {
+    await this.request.session.set("client", client);
+    await this.request.session.set("redirect_uri", redirect_uri);
   }
 }
 

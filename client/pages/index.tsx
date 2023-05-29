@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 
 export default function Home() {
-  const [count, setCount] = useState(0);
-
   return (
     <div>
       <h1>Home</h1>
-      <p>{count}</p>
-      <button onClick={() => setCount((count) => count + 1)}>Click me</button>
+      <p>
+        You shouldn't be here. Account management page can be found at:
+        https://account.acs.test
+      </p>
     </div>
   );
 }

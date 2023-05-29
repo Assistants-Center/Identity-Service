@@ -66,6 +66,31 @@ class IdentityServer {
       });
     });
 
+    this.fastify.get("/login", (req: FastifyRequest, reply: FastifyReply) => {
+      if (!req.session.get("client") || !req.session.get("redirect_uri")) {
+        return app.render(req.raw, reply.raw, "/client_died", {});
+      }
+      if (!req.session.get("user")) {
+        return app.render(req.raw, reply.raw, "/login", {});
+      } else {
+        return reply.redirect("/request");
+      }
+    });
+
+    this.fastify.get("/request", (req: FastifyRequest, reply: FastifyReply) => {
+      if (!req.session.get("user")) {
+        return reply.redirect("/login");
+      }
+      if (!req.session.get("client") || !req.session.get("redirect_uri")) {
+        return app.render(req.raw, reply.raw, "/client_died", {});
+      }
+      return app.render(req.raw, reply.raw, "/client_request", {
+        user: req.session.get("user"),
+        client: req.session.get("client"),
+        redirect_uri: req.session.get("redirect_uri"),
+      });
+    });
+
     this.app = app;
   }
 
