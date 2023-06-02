@@ -66,8 +66,11 @@ class ClientService<
       throw new UnprocessableEntityException("Invalid session");
     }
 
-    await this.request.session.set("client", null);
-    await this.request.session.set("redirect_uri", null);
+    this.request.session.set("client", undefined);
+    this.request.session.set("redirect_uri", undefined);
+    this.request.session.set("social_user", undefined);
+    this.request.session.set("social_type", undefined);
+    this.request.session.set("two_factor_user", undefined);
 
     const code = JWT.signCode({
       user_id: user.id,
