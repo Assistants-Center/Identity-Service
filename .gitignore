@@ -1,8 +1,19 @@
+# Ignore unexpected files
+
 node_modules
-.env
+dist
+.idea
 Identity.iml
 .DS_Store
 .next
+
+# Ignore secrets
+
+.env
 keys/*/*.key
 keys/*/*.pem
+
+# Ignore client module unexpected files
+
 client_module/node_modules
+client_module/dist
