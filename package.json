@@ -16,13 +16,17 @@
     "@fastify/session": "^10.3.0",
     "axios": "^1.4.0",
     "class-validator": "^0.14.0",
+    "discord-oauth2": "^2.11.0",
     "dotenv": "^16.0.3",
     "fastify": "^4.17.0",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.2.0",
     "next": "^13.4.4",
+    "node-2fa": "^2.0.3",
     "redis": "^4.6.6"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.2.3",
     "@types/react": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^5.59.7",

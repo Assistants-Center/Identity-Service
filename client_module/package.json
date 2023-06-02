@@ -1,0 +1,26 @@
+{
+  "name": "@assistants-center/identity",
+  "version": "2.0.0-beta.2",
+  "description": "A library for interacting with the Assistants' Center Identity API",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "homepage": "https://github.com/Assistants-Center/Identity/tree/main/client_module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Assistants-Center/Identity",
+    "directory": "client_module",
+    "branch": "main"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "publish-beta": "tsc && npm publish --tag beta --access public",
+    "publish": "tsc && npm publish --access public"
+  },
+  "keywords": [],
+  "author": "Assistants' Center",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}

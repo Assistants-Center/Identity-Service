@@ -37,6 +37,8 @@ const LoginPage = () => {
       />
 
       <button onClick={handleLogin}>Login</button>
+
+      <a href={"/cancel"}>Want to cancel the client identity session?</a>
     </div>
   );
 };

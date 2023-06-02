@@ -20,19 +20,34 @@ User.deleteMany({}).then(() => {
     email: "admin@assistantscenter.com",
     password: "admin123",
     roles: ["admin"],
+    connections: {
+      discord: {
+        id: "778685361014046781",
+      },
+    },
     two_factor: {
-      enabled: true,
+      enabled: false,
       devices: [],
     },
   }).then((user) => {
     console.log("Created admin user");
-    Client.deleteMany({}).then(() => {
+    Client.deleteMany({}).then(async () => {
       console.log("Deleted all clients");
+      await Client.create({
+        name: "Assistants' Center Account Management",
+        id: "assistantscenteraccount",
+        secret: "assistantscenter123",
+        redirect_uris: ["https://account.ac.test/api/auth/callback"],
+        cancel_uri: "http://localhost:3000/cancel",
+        scopes: ["account:read", "account:write", "account:delete"],
+        user_consent_required: false,
+      });
       Client.create({
         name: "Assistants Center",
         id: "assistantscenter",
         secret: "assistantscenter123",
         redirect_uris: ["http://localhost:3000"],
+        cancel_uri: "http://localhost:3000/cancel",
         scopes: [
           "admin",
           "account:read",

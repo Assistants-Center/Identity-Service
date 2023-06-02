@@ -4,10 +4,19 @@ import { IUser } from "../types/user";
 
 const userSchema = new Schema<IUser>({
   username: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, sparse: true, default: null },
+  avatar: { type: String, sparse: true, default: null },
+  verified: { type: Boolean, required: true, default: false },
+  allow_marketing: { type: Boolean, required: true, default: false },
   password: {
     type: String,
-    required: true,
+    sparse: true,
+    default: null,
+  },
+  connections: {
+    discord: {
+      id: { type: String, sparse: true, default: null },
+    },
   },
   two_factor: {
     enabled: { type: Boolean, required: true, default: false },

@@ -28,12 +28,22 @@ class AccountService<
     return user;
   }
 
-  public async create(username: string, email: string, password: string) {
-    return await User.create({
-      username,
-      email,
-      password,
+  public async findByDiscordId(discord_id: string) {
+    const user = await User.findOne({
+      "connections.discord.id": discord_id,
     });
+
+    if (!user) {
+      throw new UnprocessableEntityException(
+        "Account not found using this parameter"
+      );
+    }
+
+    return user;
+  }
+
+  public async create(query: any) {
+    return await User.create(query);
   }
 }
 

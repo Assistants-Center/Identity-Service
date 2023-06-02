@@ -3,3 +3,6 @@ node_modules
 Identity.iml
 .DS_Store
 .next
+keys/*/*.key
+keys/*/*.pem
+client_module/node_modules

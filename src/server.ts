@@ -73,12 +73,54 @@ class IdentityServer {
       if (req.session.get("two_factor_user")) {
         return reply.redirect("/2fa");
       }
+      if (req.session.get("social_user")) {
+        return reply.redirect("/register");
+      }
       if (!req.session.get("user")) {
         return app.render(req.raw, reply.raw, "/login", {});
       } else {
         return reply.redirect("/request");
       }
     });
+
+    this.fastify.get(
+      "/register",
+      (req: FastifyRequest, reply: FastifyReply) => {
+        if (!req.session.get("client") || !req.session.get("redirect_uri")) {
+          return app.render(req.raw, reply.raw, "/client_died", {});
+        }
+        if (req.session.get("two_factor_user")) {
+          return reply.redirect("/2fa");
+        }
+        if (req.session.get("user")) {
+          return reply.redirect("/request");
+        }
+
+        return app.render(req.raw, reply.raw, "/register", {
+          social_type: req.session.get("social_type"),
+          social_user: req.session.get("social_user"),
+        });
+      }
+    );
+
+    this.fastify.get(
+      "/cancel",
+      async (request: FastifyRequest, reply: FastifyReply) => {
+        const client = JSON.parse(
+          request.session.get("client")
+            ? JSON.stringify(request.session.get("client"))
+            : "{}"
+        );
+
+        request.session.set("client", undefined);
+        request.session.set("redirect_uri", undefined);
+        request.session.set("social_user", undefined);
+        request.session.set("social_type", undefined);
+        request.session.set("two_factor_user", undefined);
+
+        return reply.redirect(client?.cancel_uri || "/");
+      }
+    );
 
     this.fastify.get("/request", (req: FastifyRequest, reply: FastifyReply) => {
       if (!req.session.get("user")) {

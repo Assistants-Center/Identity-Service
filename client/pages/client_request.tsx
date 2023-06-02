@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { IUser } from "../../src/types/user";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { IClient } from "../../src/types/client";
@@ -26,6 +26,12 @@ const ClientRequestPage = ({
   client,
   redirect_uri,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  useEffect(() => {
+    if (!client.user_consent_required) {
+      location.href = "/api/auth/finish";
+    }
+  }, []);
+
   return (
     <div>
       <h1>Client Request</h1>
@@ -40,6 +46,10 @@ const ClientRequestPage = ({
         User consent is{" "}
         {client.user_consent_required ? "required" : "not required"}
       </p>
+
+      <button onClick={() => (location.href = "/api/auth/finish")}>
+        Confirm
+      </button>
     </div>
   );
 };

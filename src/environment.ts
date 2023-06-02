@@ -26,4 +26,14 @@ export default class Environment {
     username: config.DATABASE_USERNAME,
     password: config.DATABASE_PASSWORD,
   };
+
+  public static readonly discord: {
+    client_id: string;
+    client_secret: string;
+    redirect_uri: string;
+  } = {
+    client_id: config.DISCORD_CLIENT_ID,
+    client_secret: config.DISCORD_CLIENT_SECRET,
+    redirect_uri: config.DISCORD_REDIRECT_URI,
+  };
 }

@@ -1,4 +1,4 @@
-abstract class Exception {
+export abstract class Exception {
   statusCode = 500;
   error = "INTERNAL_SERVER_ERROR";
   message =

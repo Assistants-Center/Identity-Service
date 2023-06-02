@@ -9,12 +9,20 @@ import {
 import { IClient } from "../types/client";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
 
+export enum SocialType {
+  DISCORD = "discord",
+  GOOGLE = "google",
+}
+
 declare module "fastify" {
   interface Session {
     user: HydratedDocument<IUser>;
     client: HydratedDocument<IClient>;
     redirect_uri: string;
     two_factor_user: HydratedDocument<IUser>;
+
+    social_type: SocialType;
+    social_user: string;
   }
 }
 

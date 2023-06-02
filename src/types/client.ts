@@ -17,8 +17,10 @@ enum ClientScope {
 interface IClient {
   id: string;
   secret: string;
-  redirect_uris: string[];
   name: string;
+
+  redirect_uris: string[];
+  cancel_uri: string;
 
   user_consent_required: boolean;
 
