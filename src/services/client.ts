@@ -48,10 +48,14 @@ class ClientService<
     }
   }
 
-  public async requestAuthorization(redirect_uri: string) {
+  public async requestAuthorization(
+    redirect_uri: string,
+    scopes: ClientScope[]
+  ) {
     await new SessionService(this.request, this.reply).saveClient(
       this.client,
-      redirect_uri
+      redirect_uri,
+      scopes
     );
   }
 
@@ -59,6 +63,7 @@ class ClientService<
     const user = this.request.session.get("user");
     const client = this.request.session.get("client");
     const redirect_uri = this.request.session.get("redirect_uri");
+    const scopes = this.request.session.get("scopes");
 
     const url = redirect_uri;
 
@@ -71,11 +76,12 @@ class ClientService<
     this.request.session.set("social_user", undefined);
     this.request.session.set("social_type", undefined);
     this.request.session.set("two_factor_user", undefined);
+    await this.request.session.set("scopes", undefined);
 
     const code = JWT.signCode({
       user_id: user.id,
       client_id: client.id,
-      scopes: client.scopes,
+      scopes: scopes as string[],
     });
 
     return this.reply.redirect(`${url}?code=${code}`);

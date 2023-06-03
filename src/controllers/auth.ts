@@ -7,6 +7,14 @@ import {
 import {
   AccountLogin_Plain_Request,
   AccountLogin_Plain_Request_DTO,
+  Authorize_Request,
+  Authorize_Request_DTO,
+  DiscordCallback_Request,
+  DiscordCallback_Request_DTO,
+  RegisterSocial_Request,
+  RegisterSocial_Request_DTO,
+  TwoFactorVerify_Request,
+  TwoFactorVerify_Request_DTO,
 } from "../types/auth";
 
 import DiscordOauth2 from "discord-oauth2";
@@ -18,9 +26,9 @@ import { validateBody } from "../utils/validators";
 import ClientService from "../services/client";
 import TwoFactorService from "../services/two_factor";
 import Environment from "../environment";
-
-import JWT from "../utils/jwt";
 import { ClientScope } from "../types/client";
+import JwtService from "../services/jwt";
+import { AccessToken_Request, AccessToken_Request_DTO } from "../types/jwt";
 
 const discordOauth2 = new DiscordOauth2({
   clientId: Environment.discord.client_id,
@@ -37,11 +45,7 @@ const AuthController = (
     "/authorize",
     async (
       request: FastifyRequest<{
-        Querystring: {
-          client_id: string;
-          redirect_uri: string;
-          scope: string;
-        };
+        Querystring: Authorize_Request;
       }>,
       reply: FastifyReply
     ) => {
@@ -50,11 +54,12 @@ const AuthController = (
       request.session.set("social_user", undefined);
       request.session.set("social_type", undefined);
       request.session.set("two_factor_user", undefined);
+      request.session.set("scopes", undefined);
 
-      const { redirect_uri, client_id, scope } = request.query;
-      if (!redirect_uri || !client_id || !scope) {
-        throw new UnprocessableEntityException("Missing data");
-      }
+      const data = new Authorize_Request_DTO(request.query);
+      await validateBody(data);
+
+      const { redirect_uri, client_id, scope } = data;
 
       const scopes = scope.replace(/%20/g, " ").split(" ") as ClientScope[];
 
@@ -63,7 +68,8 @@ const AuthController = (
 
       await clientService.validateRedirectUri(redirect_uri);
       await clientService.validateScopes(scopes);
-      await clientService.requestAuthorization(redirect_uri);
+      await clientService.requestAuthorization(redirect_uri, scopes);
+
       return reply.redirect("/login");
     }
   );
@@ -114,10 +120,7 @@ const AuthController = (
     "/register/social",
     async (
       request: FastifyRequest<{
-        Body: {
-          username: string;
-          email: string;
-        };
+        Body: RegisterSocial_Request;
       }>,
       reply: FastifyReply
     ) => {
@@ -128,12 +131,10 @@ const AuthController = (
         );
       }
 
-      const { username, email } = request.body;
-      if (!username || !email) {
-        throw new UnprocessableEntityException(
-          "Username and email are required"
-        );
-      }
+      const body = new RegisterSocial_Request_DTO(request.body);
+      await validateBody(body);
+
+      const { username, email } = body;
 
       const user = await new AccountService(request, reply).create({
         username,
@@ -154,22 +155,16 @@ const AuthController = (
     "/discord/callback",
     async (
       request: FastifyRequest<{
-        Querystring: {
-          code?: string;
-          error?: string;
-        };
+        Querystring: DiscordCallback_Request;
       }>,
       reply: FastifyReply
     ) => {
-      const { code, error } = request.query;
+      const data = new DiscordCallback_Request_DTO(request.query);
+      await validateBody(data);
+
+      const { code, error } = data;
       if (error) {
         return reply.redirect("/login?error=The user denied the request.");
-      }
-
-      if (!code) {
-        return reply.redirect(
-          "/login?error=No code was returned from Discord."
-        );
       }
 
       const token = await discordOauth2.tokenRequest({
@@ -179,14 +174,9 @@ const AuthController = (
       });
       const discordUser = await discordOauth2.getUser(token.access_token);
 
-      let user;
-      try {
-        user = await new AccountService(request, reply).findByDiscordId(
-          discordUser.id
-        );
-      } catch {
-        /* empty */
-      }
+      const user = await new AccountService(request, reply).findByDiscordId(
+        discordUser.id
+      );
 
       if (!user) {
         await request.session.set("social_user", discordUser.id);
@@ -216,18 +206,16 @@ const AuthController = (
     "/2fa/verify",
     async (
       request: FastifyRequest<{
-        Body: {
-          code?: string;
-        };
+        Body: TwoFactorVerify_Request;
       }>,
       reply: FastifyReply
     ) => {
       await new AuthGuards(request, reply).mustNotBeAuthenticated();
 
+      const body = new TwoFactorVerify_Request_DTO(request.body);
+      await validateBody(body);
+
       const { code } = request.body;
-      if (!code) {
-        throw new UnprocessableEntityException("Invalid code");
-      }
 
       const { two_factor_user } = request.session;
       if (!two_factor_user) {
@@ -257,41 +245,26 @@ const AuthController = (
   );
 
   instance.post(
-    "/access-token",
+    "/token",
     async (
       request: FastifyRequest<{
-        Body: {
-          code?: string;
-          redirect_uri?: string;
-          client_id?: string;
-          client_secret?: string;
-        };
+        Body: AccessToken_Request;
       }>,
       reply: FastifyReply
     ) => {
       await new AuthGuards(request, reply).mustNotBeAuthenticated();
 
-      const { code, redirect_uri, client_id, client_secret } = request.body;
+      const body = new AccessToken_Request_DTO(request.body);
+      await validateBody(body);
 
-      if (!code || !redirect_uri || !client_id || !client_secret) {
-        throw new UnprocessableEntityException("Missing data");
-      }
-
-      const result = JWT.verifyCode(code);
-
-      const client = await ClientService.find(client_id);
-      if (client.secret !== client_secret) {
-        throw new UnprocessableEntityException("Invalid client secret");
-      }
-
-      if (!client.redirect_uris.includes(redirect_uri)) {
-        throw new UnprocessableEntityException("Invalid redirect uri");
-      }
-
-      const accessToken = JWT.signAccessToken(result);
-      return reply.send({
-        access_token: accessToken,
+      const { code, redirect_uri, client_id, client_secret } = body;
+      const token = await new JwtService(request, reply).signAccessToken({
+        code,
+        redirect_uri,
+        client_id,
+        client_secret,
       });
+      return reply.send(token);
     }
   );
 

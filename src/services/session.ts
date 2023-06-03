@@ -6,7 +6,7 @@ import {
   RawServerBase,
   RouteGenericInterface,
 } from "fastify";
-import { IClient } from "../types/client";
+import { ClientScope, IClient } from "../types/client";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
 
 export enum SocialType {
@@ -23,6 +23,8 @@ declare module "fastify" {
 
     social_type: SocialType;
     social_user: string;
+
+    scopes: ClientScope[];
   }
 }
 
@@ -45,10 +47,12 @@ class SessionService<
 
   public async saveClient(
     client: HydratedDocument<IClient>,
-    redirect_uri: string
+    redirect_uri: string,
+    scopes: ClientScope[]
   ) {
     await this.request.session.set("client", client);
     await this.request.session.set("redirect_uri", redirect_uri);
+    await this.request.session.set("scopes", scopes);
   }
 }
 
