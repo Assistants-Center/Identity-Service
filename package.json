@@ -3,7 +3,7 @@
   "description": "Identity microservice for Assistants' Center",
   "private": true,
   "scripts": {
-    "start-dev": "nodemon --exec ts-node src/app.ts",
+    "start-dev": " export CURL_CA_BUNDLE=\"/etc/ssl/cert.pem\" && nodemon --exec ts-node src/app.ts",
     "start": "tsc && node dist/app.js"
   },
   "keywords": [],

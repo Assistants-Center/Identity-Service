@@ -29,6 +29,8 @@ import Environment from "../environment";
 import { ClientScope } from "../types/client";
 import JwtService from "../services/jwt";
 import { AccessToken_Request, AccessToken_Request_DTO } from "../types/jwt";
+import JwtGuard from "../guards/jwt";
+import { IUserResponse } from "../types/user";
 
 const discordOauth2 = new DiscordOauth2({
   clientId: Environment.discord.client_id,
@@ -273,6 +275,28 @@ const AuthController = (
     async (request: FastifyRequest, reply: FastifyReply) => {
       await request.session.destroy();
       return reply.redirect("/");
+    }
+  );
+
+  instance.get(
+    "/userinfo",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const jwtGuard = new JwtGuard(request, reply);
+      await jwtGuard.mustHaveScopes([ClientScope.AccountRead]);
+      const user = await jwtGuard.getUser();
+
+      const userResponse: IUserResponse = {
+        _id: String(user._id),
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        verified: user.verified,
+        allow_marketing: user.allow_marketing,
+        roles: user.roles,
+        connections: user.connections,
+      };
+
+      return reply.send(userResponse);
     }
   );
 

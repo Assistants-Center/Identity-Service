@@ -40,6 +40,7 @@ class JWT {
   }
 
   static signAccessToken(payload: IJwtPayload) {
+    delete payload.exp;
     return jwt.sign(payload, accessTokenKeys[0], {
       algorithm: "RS256",
       expiresIn: "1w",

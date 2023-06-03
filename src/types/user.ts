@@ -36,22 +36,23 @@ interface IUser {
 }
 
 interface IUserResponse {
+  _id: string;
   username: string;
   email?: string;
-  avatar: string;
+  avatar?: string;
   verified: boolean;
   allow_marketing: boolean;
   roles: UserRole[];
 
   connections: {
     discord: {
-      id: string;
+      id?: string;
     };
     google: {
-      id: string;
+      id?: string;
     };
     github: {
-      id: string;
+      id?: string;
     };
   };
 }

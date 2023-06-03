@@ -24,6 +24,10 @@ class TwoFactorService<
     private readonly user: HydratedDocument<IUser>
   ) {}
 
+  public async getState() {
+    return this.user.two_factor;
+  }
+
   public async createUser2FASession() {
     this.request.session.set("two_factor_user", this.user);
   }

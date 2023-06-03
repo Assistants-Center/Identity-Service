@@ -6,6 +6,7 @@ import {
 import JWT from "../utils/jwt";
 import User from "../schemas/user";
 import { UserRole } from "../../client_module";
+import { ClientScope } from "../types/client";
 
 class JwtGuard {
   constructor(
@@ -14,14 +15,14 @@ class JwtGuard {
   ) {}
 
   public getUserPayload() {
-    const token = this.request.headers.authorization;
+    const token = this.request.headers.authorization?.replace("Bearer ", "");
     if (!token) {
-      throw new UnauthorizedException("No token provided");
+      throw new UnauthorizedException();
     }
 
     const userPayload = JWT.verifyAccessToken(token);
     if (!userPayload) {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException();
     }
 
     return userPayload;
@@ -30,7 +31,7 @@ class JwtGuard {
     const userPayload = await this.getUserPayload();
     const user = await User.findById(userPayload.user_id);
     if (!user) {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException();
     }
     return user;
   }
@@ -38,21 +39,23 @@ class JwtGuard {
   public async mustBeAuthenticated() {
     const token = this.request.headers.authorization;
     if (!token) {
-      throw new UnauthorizedException("No token provided");
+      throw new UnauthorizedException();
     }
 
     const user = await JWT.verifyAccessToken(token);
     if (!user) {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException();
     }
   }
 
   public mustHaveScopes(scopes: string[]) {
     const user = this.getUserPayload();
 
-    const valid = scopes.every((scope) => user.scopes.includes(scope));
-    if (!valid) {
-      throw new ForbiddenException("Scope not allowed");
+    if (!scopes.includes(ClientScope.Admin)) {
+      const valid = scopes.every((scope) => user.scopes.includes(scope));
+      if (!valid) {
+        throw new ForbiddenException("Scope not allowed");
+      }
     }
   }
 

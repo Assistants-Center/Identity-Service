@@ -40,7 +40,7 @@ User.deleteMany({}).then(() => {
         redirect_uris: ["https://account.ac.test/api/auth/callback"],
         cancel_uri: "http://localhost:3000/cancel",
         scopes: ["account:read", "account:write", "account:delete"],
-        user_consent_required: false,
+        user_consent_required: true,
       });
       Client.create({
         name: "Assistants Center",

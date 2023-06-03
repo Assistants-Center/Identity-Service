@@ -1,5 +1,6 @@
 import { IdentityClientOptions, UserResponse } from "./types";
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
+import * as https from "https";
 
 /**
  * @class IdentityClient
@@ -31,6 +32,8 @@ import axios from "axios";
  *  const user = await identityClient.getUserInfo(token.access_token);
  */
 class IdentityClient {
+  private readonly axiosInstance: AxiosInstance;
+
   /**
    * @constructor
    * @description Create a new IdentityClient
@@ -53,6 +56,15 @@ class IdentityClient {
   constructor(private readonly options: IdentityClientOptions) {
     !options.identityUrl &&
       (this.options.identityUrl = "https://identity.assistantscenter.com");
+    options.rejectUnauthorized === undefined &&
+      (this.options.rejectUnauthorized = true);
+
+    this.axiosInstance = axios.create({
+      baseURL: this.options.identityUrl,
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: this.options.rejectUnauthorized,
+      }),
+    });
   }
 
   /**
@@ -80,9 +92,9 @@ class IdentityClient {
    * const token = await identityClient.getAccessToken("code");
    */
   public async getAccessToken(code: string) {
-    const res = await axios.post<{
+    const res = await this.axiosInstance.post<{
       access_token: string;
-    }>(`${this.options.identityUrl}/api/auth/token`, {
+    }>(`/api/auth/token`, {
       client_id: this.options.clientId,
       client_secret: this.options.clientSecret,
       redirect_uri: this.options.redirectUri,
@@ -121,8 +133,8 @@ class IdentityClient {
    * // }
    */
   public async getUserInfo(accessToken: string) {
-    const res = await axios.get<UserResponse>(
-      `${this.options.identityUrl}/api/auth/userinfo`,
+    const res = await this.axiosInstance.get<UserResponse>(
+      `/api/auth/userinfo`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

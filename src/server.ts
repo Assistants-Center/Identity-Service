@@ -14,6 +14,7 @@ import path from "path";
 import { NextServer } from "next/dist/server/next";
 
 import AuthController from "./controllers/auth";
+import TwoFactorController from "./controllers/two_factor";
 
 class IdentityServer {
   private fastify: FastifyInstance = Fastify({
@@ -153,6 +154,7 @@ class IdentityServer {
 
   private async injectControllers() {
     this.fastify.register(AuthController, { prefix: "/api/auth" });
+    this.fastify.register(TwoFactorController, { prefix: "/api/2fa" });
   }
 }
 

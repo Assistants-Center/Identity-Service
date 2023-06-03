@@ -1,7 +1,7 @@
-import { Length, Validate } from "class-validator";
-import { EmailValidator, UsernameValidator } from "../utils/validators";
+import { Length } from "class-validator";
 
 interface IJwtPayload {
+  exp?: number;
   user_id: string;
   client_id: string;
   scopes: string[];
@@ -15,12 +15,10 @@ export type AccessToken_Request = {
 };
 
 export class AccessToken_Request_DTO implements AccessToken_Request {
-  @Length(1, 255)
-  @Validate(UsernameValidator)
+  @Length(1, 10000)
   code: string;
 
   @Length(5, 255)
-  @Validate(EmailValidator)
   redirect_uri: string;
 
   @Length(6, 255)
