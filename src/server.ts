@@ -15,18 +15,34 @@ import { NextServer } from "next/dist/server/next";
 
 import AuthController from "./controllers/auth";
 import TwoFactorController from "./controllers/two_factor";
+import { RedisClientType } from "redis";
+
+import RedisStore from "connect-redis";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    redisClient: RedisClientType;
+  }
+}
 
 class IdentityServer {
   private fastify: FastifyInstance = Fastify({
     logger: false,
   });
-
   private app!: NextServer;
+
+  constructor(private readonly redisClient: RedisClientType) {
+    this.fastify.decorate("redisClient", this.redisClient);
+  }
 
   public async start() {
     await this.fastify.register(FastifyCookie);
     await this.fastify.register(FastifySession, {
       secret: Environment.sessionSecret,
+      store: new RedisStore({
+        client: this.redisClient,
+        prefix: "session:",
+      }),
     });
 
     await this.fastify.register(FastifyMultipart, {
@@ -101,25 +117,6 @@ class IdentityServer {
           social_type: req.session.get("social_type"),
           social_user: req.session.get("social_user"),
         });
-      }
-    );
-
-    this.fastify.get(
-      "/cancel",
-      async (request: FastifyRequest, reply: FastifyReply) => {
-        const client = JSON.parse(
-          request.session.get("client")
-            ? JSON.stringify(request.session.get("client"))
-            : "{}"
-        );
-
-        request.session.set("client", undefined);
-        request.session.set("redirect_uri", undefined);
-        request.session.set("social_user", undefined);
-        request.session.set("social_type", undefined);
-        request.session.set("two_factor_user", undefined);
-
-        return reply.redirect(client?.cancel_uri || "/");
       }
     );
 

@@ -1,12 +1,17 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import JWT from "../utils/jwt";
 import ClientService from "./client";
-import { UnprocessableEntityException } from "../utils/http_exceptions";
+import {
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "../utils/http_exceptions";
+import { RedisClientType } from "redis";
 
 class JwtService {
   constructor(
     private readonly request: FastifyRequest,
-    private readonly reply: FastifyReply
+    private readonly reply: FastifyReply,
+    private readonly redisClient: RedisClientType
   ) {}
 
   public async signAccessToken({
@@ -20,7 +25,11 @@ class JwtService {
     client_id: string;
     client_secret: string;
   }) {
+    const code_used = await this.redisClient.exists(`code:${code}`);
+    if (code_used) throw new UnauthorizedException();
+
     const result = JWT.verifyCode(code);
+    await this.redisClient.setEx(`code:${code}`, 60 * 5, "used");
 
     const client = await ClientService.find(client_id);
     if (client.secret !== client_secret) {
@@ -32,6 +41,11 @@ class JwtService {
     }
 
     const accessToken = JWT.signAccessToken(result);
+
+    const access_tokens = this.request.session.get("access_tokens") || [];
+    access_tokens.push(accessToken);
+    this.request.session.set("access_tokens", access_tokens);
+
     return {
       access_token: accessToken,
     };

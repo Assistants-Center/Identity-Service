@@ -37,8 +37,13 @@ const LoginPage = () => {
       />
 
       <button onClick={handleLogin}>Login</button>
+      <button onClick={() => (location.href = "/api/auth/discord")}>
+        Continue with Discord
+      </button>
 
-      <a href={"/cancel"}>Want to cancel the client identity session?</a>
+      <a href={"/api/auth/destroy-client-session"}>
+        Want to cancel the client identity session?
+      </a>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { HydratedDocument } from "mongoose";
 import { ClientScope, IClient } from "../types/client";
 import SessionService from "./session";
 import JWT from "../utils/jwt";
+import { RedisClientType } from "redis";
 
 class ClientService<
   Request extends RouteGenericInterface,
@@ -18,6 +19,7 @@ class ClientService<
   constructor(
     private readonly request: FastifyRequest<Request>,
     private readonly reply: FastifyReply<Reply>,
+    private readonly redisClient: RedisClientType,
     private readonly client: HydratedDocument<IClient>
   ) {}
 
@@ -52,11 +54,11 @@ class ClientService<
     redirect_uri: string,
     scopes: ClientScope[]
   ) {
-    await new SessionService(this.request, this.reply).saveClient(
-      this.client,
-      redirect_uri,
-      scopes
-    );
+    await new SessionService(
+      this.request,
+      this.reply,
+      this.redisClient
+    ).saveClient(this.client, redirect_uri, scopes);
   }
 
   public async finishAuthorization() {
@@ -79,7 +81,7 @@ class ClientService<
     await this.request.session.set("scopes", undefined);
 
     const code = JWT.signCode({
-      user_id: user.id,
+      user_id: String(user._id),
       client_id: client.id,
       scopes: scopes as string[],
     });

@@ -14,11 +14,16 @@ const TwoFactorController = (
   done: () => void
 ) => {
   instance.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
-    const jwtGuard = new JwtGuard(request, reply);
+    const jwtGuard = new JwtGuard(request, reply, instance.redisClient);
     await jwtGuard.mustHaveScopes([ClientScope.AccountRead]);
     const user = await jwtGuard.getUser();
 
-    const twoFactorService = new TwoFactorService(request, reply, user);
+    const twoFactorService = new TwoFactorService(
+      request,
+      reply,
+      instance.redisClient,
+      user
+    );
     const data = await twoFactorService.getState();
 
     return reply.send(data);

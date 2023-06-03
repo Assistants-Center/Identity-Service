@@ -8,6 +8,7 @@ import {
 } from "fastify";
 import SessionService from "./session";
 import TwoFactorService from "./two_factor";
+import { RedisClientType } from "redis";
 
 class AuthService<
   Request extends RouteGenericInterface,
@@ -18,10 +19,21 @@ class AuthService<
   constructor(
     private readonly request: FastifyRequest<Request>,
     private readonly reply: FastifyReply<Reply>,
+    private readonly redisClient: RedisClientType,
     private readonly user: HydratedDocument<IUser>
   ) {
-    this.sessionService = new SessionService(request, reply, user);
-    this.twoFactorService = new TwoFactorService(request, reply, user);
+    this.sessionService = new SessionService(
+      request,
+      reply,
+      this.redisClient,
+      user
+    );
+    this.twoFactorService = new TwoFactorService(
+      request,
+      reply,
+      this.redisClient,
+      user
+    );
   }
 
   public async login() {

@@ -7,22 +7,27 @@ import JWT from "../utils/jwt";
 import User from "../schemas/user";
 import { UserRole } from "../../client_module";
 import { ClientScope } from "../types/client";
+import { RedisClientType } from "redis";
 
 class JwtGuard {
   constructor(
     private readonly request: FastifyRequest,
-    private readonly reply: FastifyReply
+    private readonly reply: FastifyReply,
+    private readonly redisClient: RedisClientType
   ) {}
 
-  public getUserPayload() {
+  public async getUserPayload() {
     const token = this.request.headers.authorization?.replace("Bearer ", "");
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Token is missing");
     }
+
+    const expired = await this.redisClient.exists(`access_token:${token}`);
+    if (expired) throw new UnauthorizedException("Access Token revoked");
 
     const userPayload = JWT.verifyAccessToken(token);
     if (!userPayload) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("User payload invalid");
     }
 
     return userPayload;
@@ -31,7 +36,7 @@ class JwtGuard {
     const userPayload = await this.getUserPayload();
     const user = await User.findById(userPayload.user_id);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("User not found");
     }
     return user;
   }
@@ -42,14 +47,15 @@ class JwtGuard {
       throw new UnauthorizedException();
     }
 
-    const user = await JWT.verifyAccessToken(token);
-    if (!user) {
+    const payload = await JWT.verifyAccessToken(token);
+    if (!payload) {
       throw new UnauthorizedException();
     }
+    return payload;
   }
 
-  public mustHaveScopes(scopes: string[]) {
-    const user = this.getUserPayload();
+  public async mustHaveScopes(scopes: string[]) {
+    const user = await this.getUserPayload();
 
     if (!scopes.includes(ClientScope.Admin)) {
       const valid = scopes.every((scope) => user.scopes.includes(scope));

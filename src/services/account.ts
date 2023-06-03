@@ -6,6 +6,7 @@ import {
   RouteGenericInterface,
 } from "fastify";
 import { UnprocessableEntityException } from "../utils/http_exceptions";
+import { RedisClientType } from "redis";
 
 class AccountService<
   Request extends RouteGenericInterface,
@@ -13,7 +14,8 @@ class AccountService<
 > {
   constructor(
     private readonly request: FastifyRequest<Request>,
-    private readonly reply: FastifyReply<Reply>
+    private readonly reply: FastifyReply<Reply>,
+    private readonly redisClient: RedisClientType
   ) {}
 
   public async findByParameter(parameter: string) {
@@ -32,12 +34,6 @@ class AccountService<
     const user = await User.findOne({
       "connections.discord.id": discord_id,
     });
-
-    if (!user) {
-      throw new UnprocessableEntityException(
-        "Account not found using this parameter"
-      );
-    }
 
     return user;
   }

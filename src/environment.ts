@@ -27,6 +27,14 @@ export default class Environment {
     password: config.DATABASE_PASSWORD,
   };
 
+  public static readonly redis: {
+    host: string;
+    port: number;
+  } = {
+    host: config.REDIS_HOST,
+    port: parseInt(config.REDIS_PORT),
+  };
+
   public static readonly discord: {
     client_id: string;
     client_secret: string;

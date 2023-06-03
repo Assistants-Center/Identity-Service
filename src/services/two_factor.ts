@@ -13,6 +13,7 @@ import { UnprocessableEntityException } from "../utils/http_exceptions";
 import SessionService from "./session";
 
 import * as Crypto from "crypto";
+import { RedisClientType } from "redis";
 
 class TwoFactorService<
   Request extends RouteGenericInterface,
@@ -21,6 +22,7 @@ class TwoFactorService<
   constructor(
     private readonly request: FastifyRequest<Request>,
     private readonly reply: FastifyReply<Reply>,
+    private readonly redisClient: RedisClientType,
     private readonly user: HydratedDocument<IUser>
   ) {}
 
@@ -56,6 +58,7 @@ class TwoFactorService<
     await new SessionService(
       this.request,
       this.reply,
+      this.redisClient,
       two_factor_user
     ).saveUser();
 

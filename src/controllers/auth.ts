@@ -31,6 +31,7 @@ import JwtService from "../services/jwt";
 import { AccessToken_Request, AccessToken_Request_DTO } from "../types/jwt";
 import JwtGuard from "../guards/jwt";
 import { IUserResponse } from "../types/user";
+import SessionService from "../services/session";
 
 const discordOauth2 = new DiscordOauth2({
   clientId: Environment.discord.client_id,
@@ -66,7 +67,12 @@ const AuthController = (
       const scopes = scope.replace(/%20/g, " ").split(" ") as ClientScope[];
 
       const client = await ClientService.find(client_id);
-      const clientService = new ClientService(request, reply, client);
+      const clientService = new ClientService(
+        request,
+        reply,
+        instance.redisClient,
+        client
+      );
 
       await clientService.validateRedirectUri(redirect_uri);
       await clientService.validateScopes(scopes);
@@ -87,7 +93,24 @@ const AuthController = (
         throw new UnprocessableEntityException("User or client not found");
       }
 
-      await new ClientService(request, reply, client).finishAuthorization();
+      await new ClientService(
+        request,
+        reply,
+        instance.redisClient,
+        client
+      ).finishAuthorization();
+    }
+  );
+
+  instance.get(
+    "/destroy-user",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      await new SessionService(
+        request,
+        reply,
+        instance.redisClient
+      ).logoutOnlyUser();
+      return reply.redirect("/login");
     }
   );
 
@@ -104,15 +127,17 @@ const AuthController = (
       const body = new AccountLogin_Plain_Request_DTO(request.body);
       await validateBody(body);
 
-      const user = await new AccountService(request, reply).findByParameter(
-        body.parameter
-      );
+      const user = await new AccountService(
+        request,
+        reply,
+        instance.redisClient
+      ).findByParameter(body.parameter);
 
       if (user.password !== body.password) {
         throw new UnprocessableEntityException("Invalid credentials");
       }
 
-      await new AuthService(request, reply, user).login();
+      await new AuthService(request, reply, instance.redisClient, user).login();
 
       return reply.send();
     }
@@ -138,7 +163,11 @@ const AuthController = (
 
       const { username, email } = body;
 
-      const user = await new AccountService(request, reply).create({
+      const user = await new AccountService(
+        request,
+        reply,
+        instance.redisClient
+      ).create({
         username,
         email,
         connections: {
@@ -148,7 +177,7 @@ const AuthController = (
         },
       });
 
-      await new AuthService(request, reply, user).login();
+      await new AuthService(request, reply, instance.redisClient, user).login();
       return reply.send();
     }
   );
@@ -176,9 +205,11 @@ const AuthController = (
       });
       const discordUser = await discordOauth2.getUser(token.access_token);
 
-      const user = await new AccountService(request, reply).findByDiscordId(
-        discordUser.id
-      );
+      const user = await new AccountService(
+        request,
+        reply,
+        instance.redisClient
+      ).findByDiscordId(discordUser.id);
 
       if (!user) {
         await request.session.set("social_user", discordUser.id);
@@ -187,7 +218,7 @@ const AuthController = (
         return reply.redirect("/register");
       }
 
-      await new AuthService(request, reply, user).login();
+      await new AuthService(request, reply, instance.redisClient, user).login();
       return reply.redirect("/request");
     }
   );
@@ -227,6 +258,7 @@ const AuthController = (
       await new TwoFactorService(
         request,
         reply,
+        instance.redisClient,
         two_factor_user
       ).validateSession(code);
 
@@ -260,7 +292,11 @@ const AuthController = (
       await validateBody(body);
 
       const { code, redirect_uri, client_id, client_secret } = body;
-      const token = await new JwtService(request, reply).signAccessToken({
+      const token = await new JwtService(
+        request,
+        reply,
+        instance.redisClient
+      ).signAccessToken({
         code,
         redirect_uri,
         client_id,
@@ -273,15 +309,29 @@ const AuthController = (
   instance.get(
     "/logout",
     async (request: FastifyRequest, reply: FastifyReply) => {
-      await request.session.destroy();
-      return reply.redirect("/");
+      const client = await request.session.get("client");
+      await new SessionService(request, reply, instance.redisClient).logout();
+      return reply.redirect(client?.cancel_uri || "/");
+    }
+  );
+
+  instance.get(
+    "/destroy-client-session",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const client = await request.session.get("client");
+      await new SessionService(
+        request,
+        reply,
+        instance.redisClient
+      ).destroyClientSession();
+      return reply.redirect(client?.cancel_uri || "/");
     }
   );
 
   instance.get(
     "/userinfo",
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const jwtGuard = new JwtGuard(request, reply);
+      const jwtGuard = new JwtGuard(request, reply, instance.redisClient);
       await jwtGuard.mustHaveScopes([ClientScope.AccountRead]);
       const user = await jwtGuard.getUser();
 
@@ -297,6 +347,17 @@ const AuthController = (
       };
 
       return reply.send(userResponse);
+    }
+  );
+
+  instance.get(
+    "/token-valid",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const jwtGuard = new JwtGuard(request, reply, instance.redisClient);
+      await jwtGuard.mustHaveScopes([ClientScope.AccountRead]);
+
+      const payload = await jwtGuard.getUserPayload();
+      return reply.status(200).send(payload);
     }
   );
 

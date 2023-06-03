@@ -50,6 +50,9 @@ const ClientRequestPage = ({
       <button onClick={() => (location.href = "/api/auth/finish")}>
         Confirm
       </button>
+      <button onClick={() => (location.href = "/api/auth/destroy-user")}>
+        Change account?
+      </button>
     </div>
   );
 };

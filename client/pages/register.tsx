@@ -75,10 +75,16 @@ const RegisterPage = ({
 
       <button onClick={handleRegister}>Create account</button>
       {social_type && (
-        <p>
-          Your account will be associated with your {social_type} account from
-          the previous step (ID: {social_user}).
-        </p>
+        <>
+          <p>
+            Your account will be associated with your {social_type} account from
+            the previous step (ID: {social_user}).
+          </p>
+
+          <button onClick={() => (location.href = "/api/auth/destroy-user")}>
+            Cancel?
+          </button>
+        </>
       )}
 
       <a href={"/cancel"}>
