@@ -20,7 +20,7 @@
     "dotenv": "^16.0.3",
     "fastify": "^4.17.0",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.2.0",
+    "mongoose": "^7.2.2",
     "next": "^13.4.4",
     "node-2fa": "^2.0.3",
     "redis": "^4.6.7"
