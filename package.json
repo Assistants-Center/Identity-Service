@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
-    "@fastify/multipart": "^7.6.0",
+    "@fastify/multipart": "^7.6.1",
     "@fastify/session": "^10.3.0",
     "axios": "^1.4.0",
     "class-validator": "^0.14.0",
